@@ -16,10 +16,14 @@ pipeline {
         
         stage('Build & Push Docker Image') {
             steps {
-                // Uses raw docker CLI commands with your credentials configured in Jenkins
-                sh 'echo $DOCKER_PASSWORD | docker login -u $DOCKER_USER --password-stdin'
-                sh 'docker build -t rohitkolekar/node-app:v1 .'
-                sh 'docker push rohitkolekar/node-app:v1'
+                // Injects your Jenkins credentials safely into environmental variables
+                withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', 
+                                                  usernameVariable: 'DOCKER_USER', 
+                                                  passwordVariable: 'DOCKER_PASSWORD')]) {
+                    sh 'echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USER" --password-stdin'
+                    sh 'docker build -t rohitkolekar/node-app:v1 .'
+                    sh 'docker push rohitkolekar/node-app:v1'
+                }
             }
         }
         
