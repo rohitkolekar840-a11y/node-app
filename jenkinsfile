@@ -1,22 +1,21 @@
 pipeline {
     agent any
-    
+
     stages {
         stage('Checkout') {
             steps {
                 git branch: 'main', url: 'https://github.com/rohitkolekar840-a11y/node-app.git'
             }
         }
-        
+
         stage('Install Dependencies') {
             steps {
                 sh 'npm install'
             }
         }
-        
+
         stage('Build & Push Docker Image') {
             steps {
-                // Injects your Jenkins credentials safely into environmental variables
                 withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', 
                                                   usernameVariable: 'DOCKER_USER', 
                                                   passwordVariable: 'DOCKER_PASSWORD')]) {
@@ -26,12 +25,12 @@ pipeline {
                 }
             }
         }
-        
-        stage('Deploy') {
+
+        stage('Deploy with Monitoring') {
             steps {
-                sh 'docker stop node-container || true'
-                sh 'docker rm node-container || true'
-                sh 'docker run -d -p 3000:3000 --name node-container rohitkolekar/node-app:v1'
+                // Pulls latest image and deploys app + prometheus + grafana using docker compose
+                sh 'docker compose down || true'
+                sh 'docker compose up -d'
             }
         }
     }
