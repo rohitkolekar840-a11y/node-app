@@ -16,13 +16,10 @@ pipeline {
         
         stage('Build & Push Docker Image') {
             steps {
-                script {
-                    docker.withRegistry('https://index.docker.io/v1/', 'dockerhub-credentials') {
-                        def customImage = docker.build("rohitkolekar/node-app:${env.BUILD_NUMBER}")
-                        customImage.push()
-                        customImage.push('v1')
-                    }
-                }
+                // Uses raw docker CLI commands with your credentials configured in Jenkins
+                sh 'echo $DOCKER_PASSWORD | docker login -u $DOCKER_USER --password-stdin'
+                sh 'docker build -t rohitkolekar/node-app:v1 .'
+                sh 'docker push rohitkolekar/node-app:v1'
             }
         }
         
