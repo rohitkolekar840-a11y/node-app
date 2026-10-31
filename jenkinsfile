@@ -4,23 +4,31 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
+                // Pulls the latest source code from the main branch of your GitHub repository
                 git branch: 'main', url: 'https://github.com/rohitkolekar840-a11y/node-app.git'
             }
         }
 
         stage('Install Dependencies') {
             steps {
+                // Installs Node.js packages required by the application locally on the agent
                 sh 'npm install'
             }
         }
 
         stage('Build & Push Docker Image') {
             steps {
+                // Securely retrieves Docker Hub credentials stored in Jenkins
                 withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', 
-                                                  usernameVariable: 'DOCKER_USER', 
-                                                  passwordVariable: 'DOCKER_PASSWORD')]) {
+                                                   usernameVariable: 'DOCKER_USER', 
+                                                   passwordVariable: 'DOCKER_PASSWORD')]) {
+                    // Logs into Docker Hub securely using the password-stdin flag
                     sh 'echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USER" --password-stdin'
+                    
+                    // Builds the Docker container image and tags it as version 1
                     sh 'docker build -t rohitkolekar/node-app:v1 .'
+                    
+                    // Pushes the newly built image up to your Docker Hub repository
                     sh 'docker push rohitkolekar/node-app:v1'
                 }
             }
@@ -28,8 +36,10 @@ pipeline {
 
         stage('Deploy with Monitoring') {
             steps {
-                // Pulls latest image and deploys app + prometheus + grafana using docker compose
+                // Stops any existing Docker Compose containers safely, ignoring errors if none exist
                 sh 'docker compose down || true'
+                
+                // Pulls the latest image and starts the application alongside Prometheus and Grafana in detached mode
                 sh 'docker compose up -d'
             }
         }

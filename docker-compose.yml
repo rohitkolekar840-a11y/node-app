@@ -1,28 +1,28 @@
-version: '3.8'
+version: '3.8' # Specifies the Docker Compose file format version
 
 services:
   app:
-    image: rohitkolekar/node-app:v1
+    image: rohitkolekar/node-app:v1 # Pulls the custom Node.js application Docker image from Docker Hub
     ports:
-      - "3000:3000"   # App is exposed externally on port 3000
-    restart: always
+      - "3000:3000"   # Maps port 3000 on the host machine to port 3000 inside the container (App is exposed externally on port 3000)
+    restart: always   # Automatically restarts the container if it crashes or the Docker daemon restarts
 
   prometheus:
-    image: prom/prometheus:latest
-    container_name: prometheus
+    image: prom/prometheus:latest # Uses the official Prometheus monitoring and alerting image
+    container_name: prometheus    # Assigns a fixed, predictable name to the Prometheus container
     ports:
-      - "9090:9090"   # Prometheus is exposed externally on port 9090
+      - "9090:9090"   # Maps port 9090 on the host to port 9090 inside the container (Prometheus UI/API is exposed externally on port 9090)
     volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
-    restart: always
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml # Mounts the local Prometheus configuration file into the container
+    restart: always   # Ensures Prometheus restarts automatically on failure
     depends_on:
-      - app
+      - app           # Ensures the Node.js application container starts before Prometheus
 
   grafana:
-    image: grafana/grafana:latest
-    container_name: grafana
+    image: grafana/grafana:latest # Uses the official Grafana visualization and analytics image
+    container_name: grafana       # Assigns a fixed, predictable name to the Grafana container
     ports:
-      - "30000:3000"  # Grafana is exposed externally on port 30000
-    restart: always
+      - "30000:3000"  # Maps port 30000 on the host to port 3000 inside the container (Grafana dashboard is exposed externally on port 30000)
+    restart: always   # Ensures Grafana restarts automatically on failure
     depends_on:
-      - prometheus
+      - prometheus    # Ensures the Prometheus monitoring container starts before Grafana
